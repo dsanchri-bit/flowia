@@ -278,7 +278,23 @@ def health():
 @app.post("/upload_excel")
 def upload_excel(file: UploadFile = File(...)):
     try:
-        file_path = BASE_DIR / "web y multimedia.xlsx"
+        filename = file.filename.lower()
+        excel_path = BASE_DIR / "web y multimedia.xlsx"
+        csv_path = BASE_DIR / "web y multimedia.csv"
+
+        if filename.endswith(".csv"):
+            file_path = csv_path
+            if excel_path.exists():
+                excel_path.unlink()
+        elif filename.endswith(".xlsx") or filename.endswith(".xls"):
+            file_path = excel_path
+            if csv_path.exists():
+                csv_path.unlink()
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Formato no soportado. Usa archivos Excel o CSV."
+            )
 
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -293,18 +309,18 @@ def upload_excel(file: UploadFile = File(...)):
         if resultado.returncode != 0:
             raise HTTPException(
                 status_code=500,
-                detail=f"Error procesando Excel: {resultado.stderr}"
+                detail=f"Error procesando archivo: {resultado.stderr}"
             )
 
         return {
             "status": "ok",
-            "message": "Excel cargado y procesado correctamente",
+            "message": "Archivo cargado y procesado correctamente",
             "detalle": resultado.stdout
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 
 @app.get("/analisis")
 def analisis():

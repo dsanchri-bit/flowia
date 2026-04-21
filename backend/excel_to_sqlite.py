@@ -4,8 +4,13 @@ import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent
 EXCEL_PATH = BASE_DIR / "web y multimedia.xlsx"
+CSV_PATH = BASE_DIR / "web y multimedia.csv"
 DB_PATH = BASE_DIR / "flowia.db"
 
+
+# -----------------------------
+# UTILIDADES
+# -----------------------------
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = [str(col).strip().lower().replace(" ", "_") for col in df.columns]
@@ -18,6 +23,10 @@ def to_num(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     return df
 
+
+# -----------------------------
+# PROCESOS DE NEGOCIO
+# -----------------------------
 
 def process_empleados(df: pd.DataFrame) -> pd.DataFrame:
     df = normalize_columns(df)
@@ -75,45 +84,112 @@ def process_ingresos(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def main():
-    if not EXCEL_PATH.exists():
-        raise FileNotFoundError(f"No se encontró el Excel en: {EXCEL_PATH}")
+# -----------------------------
+# DETECCIÓN DE ARCHIVO
+# -----------------------------
 
-    xls = pd.ExcelFile(EXCEL_PATH)
+def detect_file() -> Path:
+    if EXCEL_PATH.exists():
+        return EXCEL_PATH
+    if CSV_PATH.exists():
+        return CSV_PATH
+
+    raise FileNotFoundError(
+        f"No se encontró archivo de entrada.\nBuscado:\n- {EXCEL_PATH}\n- {CSV_PATH}"
+    )
+
+
+# -----------------------------
+# CSV
+# -----------------------------
+
+def process_csv(df: pd.DataFrame, filename: str):
+    df = normalize_columns(df)
+
+    nombre = filename.lower()
+
+    if "emplead" in nombre:
+        return process_empleados(df), "empleados"
+    elif "gasto" in nombre:
+        return process_gastos(df), "gastos"
+    elif "ingreso" in nombre:
+        return process_ingresos(df), "ingresos"
+    else:
+        return df, "datos_csv"
+
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+def main():
+    input_path = detect_file()
     conn = sqlite3.connect(DB_PATH)
 
-    hojas_detectadas = []
+    tablas = []
 
-    for sheet in xls.sheet_names:
-        raw = pd.read_excel(EXCEL_PATH, sheet_name=sheet)
+    # -----------------------------
+    # CASO CSV
+    # -----------------------------
+    if input_path.suffix.lower() == ".csv":
+        print("Procesando CSV...")
 
-        sheet_norm = str(sheet).strip().lower()
+        raw = pd.read_csv(input_path, sep=None, engine="python")
 
-        if sheet_norm == "empleados":
-            df = process_empleados(raw)
-            table_name = "empleados"
-        elif sheet_norm == "gastos":
-            df = process_gastos(raw)
-            table_name = "gastos"
-        elif sheet_norm == "ingresos":
-            df = process_ingresos(raw)
-            table_name = "ingresos"
-        else:
-            df = normalize_columns(raw)
-            table_name = sheet_norm.replace(" ", "_")
+        df, table_name = process_csv(raw, input_path.name)
 
         df.to_sql(table_name, conn, if_exists="replace", index=False)
-        hojas_detectadas.append(table_name)
+        tablas.append(table_name)
+
         print(f"Tabla creada: {table_name} ({len(df)} registros)")
 
+    # -----------------------------
+    # CASO EXCEL
+    # -----------------------------
+    else:
+        print("Procesando Excel...")
+
+        xls = pd.ExcelFile(input_path)
+
+        for sheet in xls.sheet_names:
+            raw = pd.read_excel(input_path, sheet_name=sheet)
+
+            sheet_norm = str(sheet).strip().lower()
+
+            if sheet_norm == "empleados":
+                df = process_empleados(raw)
+                table_name = "empleados"
+
+            elif sheet_norm == "gastos":
+                df = process_gastos(raw)
+                table_name = "gastos"
+
+            elif sheet_norm == "ingresos":
+                df = process_ingresos(raw)
+                table_name = "ingresos"
+
+            else:
+                df = normalize_columns(raw)
+                table_name = sheet_norm.replace(" ", "_")
+
+            df.to_sql(table_name, conn, if_exists="replace", index=False)
+            tablas.append(table_name)
+
+            print(f"Tabla creada: {table_name} ({len(df)} registros)")
+
+    # -----------------------------
+    # METADATA
+    # -----------------------------
     meta = pd.DataFrame([{
-        "archivo": EXCEL_PATH.name,
-        "hojas": ",".join(hojas_detectadas)
+        "archivo": input_path.name,
+        "tablas": ",".join(tablas)
     }])
+
     meta.to_sql("proyecto_meta", conn, if_exists="replace", index=False)
 
     conn.close()
-    print("Base de datos lista")
+
+    print("Base de datos lista correctamente")
 
 
 if __name__ == "__main__":
