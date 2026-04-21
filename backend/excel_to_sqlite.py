@@ -128,24 +128,33 @@ def main():
 
     tablas = []
 
-    # -----------------------------
     # CASO CSV
-    # -----------------------------
     if input_path.suffix.lower() == ".csv":
         print("Procesando CSV...")
 
         raw = pd.read_csv(input_path, sep=None, engine="python")
+        df = normalize_columns(raw)
 
-        df, table_name = process_csv(raw, input_path.name)
+        nombre = input_path.name.lower()
+
+        if "emplead" in nombre:
+            df = process_empleados(df)
+            table_name = "empleados"
+        elif "gasto" in nombre:
+            df = process_gastos(df)
+            table_name = "gastos"
+        elif "ingreso" in nombre:
+            df = process_ingresos(df)
+            table_name = "ingresos"
+        else:
+            table_name = "datos_csv"
 
         df.to_sql(table_name, conn, if_exists="replace", index=False)
         tablas.append(table_name)
 
         print(f"Tabla creada: {table_name} ({len(df)} registros)")
 
-    # -----------------------------
     # CASO EXCEL
-    # -----------------------------
     else:
         print("Procesando Excel...")
 
@@ -159,15 +168,12 @@ def main():
             if sheet_norm == "empleados":
                 df = process_empleados(raw)
                 table_name = "empleados"
-
             elif sheet_norm == "gastos":
                 df = process_gastos(raw)
                 table_name = "gastos"
-
             elif sheet_norm == "ingresos":
                 df = process_ingresos(raw)
                 table_name = "ingresos"
-
             else:
                 df = normalize_columns(raw)
                 table_name = sheet_norm.replace(" ", "_")
@@ -177,9 +183,6 @@ def main():
 
             print(f"Tabla creada: {table_name} ({len(df)} registros)")
 
-    # -----------------------------
-    # METADATA
-    # -----------------------------
     meta = pd.DataFrame([{
         "archivo": input_path.name,
         "tablas": ",".join(tablas)
@@ -188,7 +191,6 @@ def main():
     meta.to_sql("proyecto_meta", conn, if_exists="replace", index=False)
 
     conn.close()
-
     print("Base de datos lista correctamente")
 
 
