@@ -518,7 +518,7 @@ export default function HomePage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".xlsx,.xls"
+              accept=".xlsx,.xls,.csv"
               style={{ display: "none" }}
               onChange={(e) => {
                 if (e.target.files?.length) {
@@ -534,7 +534,7 @@ export default function HomePage() {
                 style={styles.buttonSecondary}
                 disabled={loading}
               >
-                Seleccionar Excel
+                Seleccionar archivo
               </button>
 
               <button
@@ -542,7 +542,7 @@ export default function HomePage() {
                 style={styles.buttonPrimary}
                 disabled={loading}
               >
-                Subir Excel
+                Subir archivo
               </button>
             </div>
 

@@ -15,7 +15,7 @@ export default function BackgroundParticles() {
     });
   }, []);
 
-  const options = useMemo(
+  const options = useMemo<any>(
     () => ({
       fullScreen: {
         enable: true,
@@ -53,7 +53,7 @@ export default function BackgroundParticles() {
         move: {
           enable: true,
           speed: 0.6,
-          direction: "none",
+          direction: "none" as const,
           random: false,
           straight: false,
           outModes: {
