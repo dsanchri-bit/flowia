@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
+import BackgroundParticles from "./components/Background";
 import {
   BarChart,
   Bar,
@@ -447,8 +448,8 @@ export default function HomePage() {
 
   return (
     <main style={styles.page} translate="no">
-      <div style={styles.backgroundShapes}></div>
-
+      <BackgroundParticles />
+    
       <div style={styles.container}>
         <section style={styles.heroCard}>
           <div style={styles.heroLeft}>
@@ -929,17 +930,18 @@ export default function HomePage() {
 }
 
 const styles: any = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "radial-gradient(circle at top left, #1e3a8a 0%, transparent 25%), radial-gradient(circle at top right, rgba(16,185,129,0.16) 0%, transparent 22%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%)",
-    color: "white",
-    padding: "32px 20px 60px",
-    fontFamily:
-      "Inter, Arial, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-    position: "relative",
-    overflow: "hidden",
-  },
+page: {
+  minHeight: "100vh",
+  background:
+    "radial-gradient(circle at top left, #1e3a8a 0%, transparent 25%), radial-gradient(circle at top right, rgba(16,185,129,0.16) 0%, transparent 22%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%)",
+  color: "white",
+  padding: "32px 20px 60px",
+  fontFamily:
+    "Inter, Arial, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+  position: "relative",
+  zIndex: 1,
+  overflow: "hidden",
+},
   backgroundShapes: {
     position: "absolute",
     inset: 0,
@@ -952,11 +954,11 @@ const styles: any = {
     pointerEvents: "none",
   },
   container: {
-    maxWidth: 1180,
-    margin: "0 auto",
-    position: "relative",
-    zIndex: 1,
-  },
+  maxWidth: 1180,
+  margin: "0 auto",
+  position: "relative",
+  zIndex: 2,
+},
   heroCard: {
     display: "grid",
     gridTemplateColumns: "1.8fr 1fr",
@@ -1137,26 +1139,28 @@ const styles: any = {
     gap: 12,
     flexWrap: "wrap",
   },
-  buttonPrimary: {
-    padding: "12px 16px",
-    background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-    border: "1px solid rgba(96,165,250,0.35)",
-    color: "white",
-    cursor: "pointer",
-    borderRadius: 12,
-    fontWeight: 700,
-    boxShadow: "0 10px 24px rgba(37,99,235,0.22)",
-  },
-  buttonSecondary: {
-    padding: "12px 16px",
-    background: "linear-gradient(135deg, #0f766e, #0f766e)",
-    border: "1px solid rgba(45,212,191,0.25)",
-    color: "white",
-    cursor: "pointer",
-    borderRadius: 12,
-    fontWeight: 700,
-    boxShadow: "0 10px 24px rgba(15,118,110,0.18)",
-  },
+buttonPrimary: {
+   padding: "12px 18px",
+   background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+   border: "none",
+   color: "white",
+   cursor: "pointer",
+   borderRadius: 10,
+   transition: "transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease",
+   boxShadow: "0 4px 14px rgba(37,99,235,0.4)",
+   fontWeight: 600,
+},
+buttonSecondary: {
+   padding: "12px 18px",
+   background: "linear-gradient(135deg, #0f766e, #0d9488)",
+   border: "none",
+   color: "white",
+   cursor: "pointer",
+   borderRadius: 10,
+   transition: "transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease",
+   boxShadow: "0 4px 14px rgba(15,118,110,0.4)",
+   fontWeight: 600,
+},
   fileTag: {
     marginTop: 16,
     display: "inline-flex",
